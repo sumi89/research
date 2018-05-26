@@ -24,8 +24,8 @@ import datetime
 from itertools import chain
 
 
-
-def url_with_date(date1, date2, url):
+#this method will take start date, end date and url, return url with date
+def url_w_date(date1, date2, url):
     start_date = datetime.datetime.strptime(date1, '%Y-%m-%d')
     #start_date = start_date.strftime('%Y/%m/%d')
     end_date = datetime.datetime.strptime(date2, '%Y-%m-%d')
@@ -42,7 +42,7 @@ def url_with_date(date1, date2, url):
     return url_date
 
 
-# this method will take the url with date and return the url with date and image file name (with wavelength)
+# this method will take the url with date, return the url with date and image file name (with wavelength)
 def url_w_date_image(url_d):
     page = requests.get(url_d)    
     data = page.text
@@ -51,20 +51,20 @@ def url_w_date_image(url_d):
     img_files=[]
     for link in soup.find_all('a'):
         img_file = link.get('href')
-        #select the wavelength
         splitting = re.split(r'[_.?=;/]+',img_file)
+        #select the wavelength
         if (splitting[3]=='4500'):
             img_files.append(img_file)
    
-    size = len(img_files) - 5
+    size = len(img_files)
     url_date_img = []
-    for i in range(3): #range(size)
-        url_ = url_d + img_files[5+i]
+    for i in range(size): #range(size)
+        url_ = url_d + img_files[i]
         url_date_img.append(url_)
     return url_date_img
         
     
-# this method will take the url with date and image name and return the corresponding images 
+# this method will take the url with date and image name, return the corresponding images 
 def get_image(url_dt_img):
     img_all=[]
     for i in range(len(url_dt_img)):
@@ -74,7 +74,7 @@ def get_image(url_dt_img):
     return img_all
 
 
-url_dt = url_w_date('2012-09-15', '2012-09-17', "https://sdo.gsfc.nasa.gov/assets/img/browse/")
+url_dt = url_w_date('2012-09-15', '2012-09-16', "https://sdo.gsfc.nasa.gov/assets/img/browse/")
 
 
 url_date_image = []
@@ -82,9 +82,12 @@ for i in range(len(url_dt)):
     url_dt_img = url_w_date_image(url_dt[i])
     url_date_image.append(url_dt_img)
     
+# converting a list of list to a list
 url_date_image = list(chain.from_iterable(url_date_image))
     
 images = get_image(url_date_image)
+
+# showing the images
 for img in images:
     img.show()
 
