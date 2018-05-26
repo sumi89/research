@@ -42,7 +42,7 @@ def url_with_date(date1, date2, url):
     return url_date
 
 
-# this method will take the url with date and return all the image file of that url
+# this method will take the url with date and return the url with date and image file name (with wavelength)
 def url_w_date_image(url_d):
     page = requests.get(url_d)    
     data = page.text
