@@ -122,7 +122,8 @@ img = images[0]
 
 rows,cols = img.shape[:2]
 
-dest = np.zeros(img.shape)
+#dest = img
+dest = np.zeros((img.shape))
 
 radius = 400
 center = 500
@@ -150,6 +151,40 @@ for i in range(rows):
 plt.imshow(dest)
 plt.imshow(img)
 ############## end of WARPING #################
+
+img = images[0]  
+#dest = img
+dest = np.zeros(img.shape)
+
+radius = 400
+center = 500
+#alpha = 360/36.5
+#alpha=0
+alpha = .15
+
+for i in range(center-radius,center+radius+1):
+#for i in range(120,121):
+    r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - i)))))
+    #for j in range(int(round(center-r+r*alpha),center+r+1)):
+    for j in range(center-r,center+r+1):
+        iy = int(round(min(center+r, max(0, int(round(np.abs(j-r*alpha)))))))
+        #print(r,j,iy)
+        dest[i][j] = img[i][iy]
+plt.imshow(dest)
+plt.imshow(img)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -21,9 +21,9 @@ im2arr_ = np.array(im_) # im2arr.shape: height x width x channel
 plt.imshow(im2arr_)
 im2arr_ = im2arr_/255
 plt.imshow(im2arr_)
-img = np.mean(im2arr_,axis=2)
-plt.imshow(img)
-
+im = np.mean(im2arr_,axis=2)
+plt.imshow(im)
+dst = im
 #arr2im_ = Image.fromarray(im2arr_)
 
 
@@ -31,7 +31,8 @@ plt.imshow(img)
 img = cv2.imread('/Users/sumi/python/research/image.jpeg',0)
 rows,cols = img.shape
 
-dest = np.zeros((img.shape))
+dst = im
+dst = np.zeros((im.shape))
 
 ####### CORRECT CODE #########
 #for i in range(rows):
@@ -43,12 +44,48 @@ dest = np.zeros((img.shape))
 #        dest[i][j] = img[ix][iy]
 ####### END OF CORRECT CODE ####
 
+radius = 50
+center = 112
+alpha = 0.2
+#alpha = 0
+
+for i in range(center-radius,center+radius+1):
+#for i in range(120,121):
+    r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - i)))))
+    #for j in range(int(center-r+r*alpha),center+r+1):
+    for j in range(center-r,center+r+1):
+        iy = int(round(min(center+r, max(0, int(round(np.abs(j-r*alpha)))))))
+        #print(r,j,iy)
+        dst[i][j] = im[i][iy]
+#    else:
+#        iy = j
+#            #print(r,j,iy)
+#    dest[i][j] = img[i][iy]
+#else:
+#    r = 0
+#    for j in range(cols):
+#        iy = j
+#        #print(r,j,iy)
+#        dest[i][j] = img[i][iy]
+
+plt.imshow(dst)
+plt.imshow(im)
+
+
+#############################################
+##############################################
+
+rows,cols = im.shape
+
+dst = np.zeros((im.shape))
+
 radius =  50
 center = 112
-alpha = 1.3
+alpha = 0.5
+#alpha = 0
 
 for i in range(rows):
-#for i in range(120,121):
+#for i in range(100,101):
     if i in range(center-radius,center+radius+1):
         r = int(np.sqrt(np.abs(np.square(radius) - np.square(center - i))))
         for j in range(cols):
@@ -56,15 +93,17 @@ for i in range(rows):
                 iy = int(min(center+r, max(0, int(np.abs(j-r*alpha)))))
             else:
                 iy = j
-            #print(r,j,iy)
-            dest[i][j] = img[i][iy]
+                #print(r,j,iy)
+            dst[i][j] = im[i][iy]
     else:
         r = 0
         for j in range(cols):
             iy = j
             #print(r,j,iy)
-            dest[i][j] = img[i][iy]
-
+            dst[i][j] = im[i][iy]
+            
+plt.imshow(dst)
+plt.imshow(im)
 
 #for i in range(rows):
 ##for i in range(2,3):
@@ -132,4 +171,18 @@ for i in range(rows):
 cv2.imshow('Vertical wave', dest)
 cv2.waitKey(0)
 ############ end of vertical wave #########
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
