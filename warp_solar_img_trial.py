@@ -96,17 +96,17 @@ img = img/255        # scaling from [0,1]
 img = np.mean(img,axis=2) #take the mean of the R, G and B  
 
 
-dest = np.zeros(img.shape)
+
 #dest = np.zeros((180,360),dtype=np.float32)
 
 
 radius = 400
 center = 500
-alpha = 360/36.5
+alpha = 3600/36.5
 #alpha=0
 #alpha = 10
 
-
+dest = np.zeros(img.shape)
 ######## image warping (orthographic projection) ########
 for i in range(center-radius,center+radius+1):
 #for i in range(120,121):
@@ -121,10 +121,11 @@ plt.imshow(img, cmap='gray')
 
 
 
-######## equirectangular projection #############
+######## equirectangular projection (FORWARD MAPPING) WRONG ONE #############
 radius = 400
 center = 500
-alpha = 360/36.5
+alpha = 36/36.5
+#alpha = 0.1
 #dest = np.zeros(img.shape)
 dest = np.zeros((180,360))
 
@@ -133,21 +134,57 @@ for i in range(center-radius,center+radius+1):
     r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - i)))))
     for j in range(center-r,center+r+1):
         lat = int(round((math.asin((center-i)/radius))*180/math.pi))
-        lon = int(round((math.asin((j-center)/radius))*180/math.pi))
-#        if lon > 0:
-#            lon = 180 - lon
-#        else:
-#            lon = -180 - lon
-        iy = int(round(min(center+r, max(0, int(round(np.abs(lon-radius*math.sin(math.radians(alpha)))))))))
+        lon = int(round((math.asin((j-center)/radius))*360/math.pi/2))
+        lat = (lat+180)%180
+        lon = (lon+360)%360
+        #iy = int(round(min(center+r, max(0, int(round(np.abs(lon-radius*math.sin(math.radians(alpha)))))))))
         #print(r,i,j,lon,lat)
-        #print(lat, lon, iy)
+        #dest[lat][lon] = img[i][iy]
         dest[lat][lon] = img[i][j]
-        #print(i, iy)
 plt.imshow(dest, cmap='gray')
 plt.imshow(img, cmap='gray')
         
         
-######## end of equirectangular projection #############
+######## end of equirectangular projection (FORWARD MAPPING) WRONG ONE#############
+
+
+######## equirectangular projection (BACKWARD MAPPING) (without using alpha)#############
+
+dest = np.zeros((180,360))
+
+for i in range(-90,90):
+    for j in range(-180,180):
+        s_i = int(round(center - ((math.sin(math.radians(i)))*radius)))
+        s_j = int(round(center - ((math.sin(math.radians(-j)))*radius)))
+        #s_j_nxt = int(round(min(center+r, max(0, int(round(np.abs(s_j-radius*math.sin(math.radians(alpha)))))))))
+        dest[i+90][j+180] = img[s_i][s_j]
+plt.imshow(dest, cmap='gray')
+plt.imshow(img, cmap='gray')
+
+######## equirectangular projection (BACKWARD MAPPING) (without using alpha)#############
+
+
+####################################
+
+alpha = 360/36.5
+#alpha = 0
+dest2 = np.zeros((180,360))
+
+for i in range(-90,90):
+    for j in range(-180,180):
+        s_i = int(round(center - ((math.sin(math.radians(i)))*radius)))
+        r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - s_i)))))
+        s_j = int(round(min(center+r, max(0,center - ((math.sin(math.radians(-j)))*radius)))))
+        s_j_nxt = int(round(min(center+r, max(0, int(round(np.abs(s_j-radius*math.sin(math.radians(alpha)))))))))
+        dest2[i+90][j+180] = img[s_i][s_j_nxt]
+        #dest1[i+90][j+180] = img[s_i][s_j]
+plt.imshow(dest2, cmap='gray')
+plt.imshow(img, cmap='gray')
+
+
+
+
+
 
 
 
