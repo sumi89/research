@@ -147,6 +147,7 @@ plt.imshow(img, cmap='gray')
         
 ######## end of equirectangular projection (FORWARD MAPPING) WRONG ONE#############
 
+#***********************************************************************************************************#
 
 ######## equirectangular projection (BACKWARD MAPPING) (without using alpha)#############
 
@@ -163,78 +164,31 @@ plt.imshow(img, cmap='gray')
 
 ######## equirectangular projection (BACKWARD MAPPING) (without using alpha)#############
 
+#***********************************************************************************************************#
 
-####################################
+######## equirectangular projection (BACKWARD MAPPING)#############
 
 alpha = 360/36.5
 #alpha = 0
-dest2 = np.zeros((180,360))
+dest = np.zeros((180,360))
 
 for i in range(-90,90):
+#for i in range(0,1):
     for j in range(-180,180):
         s_i = int(round(center - ((math.sin(math.radians(i)))*radius)))
         r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - s_i)))))
-        s_j = int(round(min(center+r, max(0,center - ((math.sin(math.radians(-j)))*radius)))))
+        if r == 0:
+            s_j = 500
+        else:
+            s_j = int(round(min(center+r, max(0,center - ((math.sin(math.radians(-j)))*radius)))))
         s_j_nxt = int(round(min(center+r, max(0, int(round(np.abs(s_j-radius*math.sin(math.radians(alpha)))))))))
-        dest2[i+90][j+180] = img[s_i][s_j_nxt]
+        #print (s_j, s_j_nxt)
+        dest[i+90][j+180] = img[s_i][s_j_nxt]
         #dest1[i+90][j+180] = img[s_i][s_j]
-plt.imshow(dest2, cmap='gray')
-plt.imshow(img, cmap='gray')
-
-
-
-
-
-
-
-
-
-
-
-
-######## equirectangular projection (1st attempt)##############
-#for i in range(center-radius,center+radius+1):
-for i in range(120,121):
-    r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - i)))))
-    for j in range(center-r,center+r+1):
-        #radius_sphere = np.sqrt(i**2 + j**2)
-        #z = 0
-        lon_next = math.atan2(i, min(j+1, center+r+1))
-        lat_next = math.radians(90)-math.atan2(np.sqrt(i**2 + (j+1)**2),0)
-        lon_curr = math.atan2(i,j)
-        lat_curr = math.radians(90)-math.atan2(np.sqrt(i**2 + j**2),0)
-        diff_lon = np.abs(lon_next-lon_curr)
-        first_term_numerator = (math.cos(lat_next) * math.sin(diff_lon))**2
-        second_term_numerator = math.cos(lat_curr) * math.sin(lat_next)
-        third_term_numerator = math.sin(lat_curr) * math.cos(lat_next) * math.cos(diff_lon)
-        first_term_denominator = math.sin(lat_curr) * math.sin(lat_next)
-        second_term_denominator = math.cos(lat_curr) * math.cos(lat_next) * math.cos(diff_lon)
-        central_angle = math.atan2(np.sqrt(first_term_numerator + (second_term_numerator - third_term_numerator)**2),(first_term_denominator + second_term_denominator))
-        iy = int(round(min(center+r, max(0, int(round(np.abs(j-r*central_angle)))))))
-        #print(r,j,iy)
-        dest[i][j] = img[i][iy]
 plt.imshow(dest, cmap='gray')
 plt.imshow(img, cmap='gray')
-        
 
-
-######## end of equirectangular projection (1st attempt)##############
-
-
-
-
-
-
-
-dist_arr = np.zeros(img.shape, dtype=np.float32)
-
-for i in range(dist_arr.shape[0]):
-    for j in range(dist_arr.shape[1]):
-        dist_arr[i][j]= np.linalg.norm(img[i][j] - center)
-
-mask = dist_arr > radius
-
-sun = img[mask].reshape((img.shape[0], -1)).astype(np.float32)
+######## equirectangular projection (BACKWARD MAPPING) #############
 
 
 
