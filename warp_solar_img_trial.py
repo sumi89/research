@@ -88,7 +88,7 @@ for i in range(len(urls_dates_images)):
       
 
 
-plt.imshow(img_all[0])
+#plt.imshow(img_all[0])
 
 img = img_all[0]
 img = np.array(img) # img.shape: height x width x channel
@@ -166,29 +166,176 @@ plt.imshow(img, cmap='gray')
 
 #***********************************************************************************************************#
 
-######## equirectangular projection (BACKWARD MAPPING)#############
+######## equirectangular projection (BACKWARD MAPPING) (NOT CORRECT) #############
 
+
+radius = 400
+center = 500
 alpha = 360/36.5
 #alpha = 0
 dest = np.zeros((180,360))
 
 for i in range(-90,90):
-#for i in range(0,1):
+#for i in range(0,90):
     for j in range(-180,180):
-        s_i = int(round(center - ((math.sin(math.radians(i)))*radius)))
+    #for j in range(0,1):
+        s_i = int(round(center + ((math.sin(math.radians(i)))*radius)))
         r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - s_i)))))
         if r == 0:
             s_j = 500
         else:
-            s_j = int(round(min(center+r, max(0,center - ((math.sin(math.radians(-j)))*radius)))))
+            s_j = int(round(min(center+r, max(0,center + ((math.sin(math.radians(-j)))*radius)))))
+        print (s_i, s_j)
         s_j_nxt = int(round(min(center+r, max(0, int(round(np.abs(s_j-radius*math.sin(math.radians(alpha)))))))))
-        #print (s_j, s_j_nxt)
         dest[i+90][j+180] = img[s_i][s_j_nxt]
         #dest1[i+90][j+180] = img[s_i][s_j]
 plt.imshow(dest, cmap='gray')
 plt.imshow(img, cmap='gray')
 
-######## equirectangular projection (BACKWARD MAPPING) #############
+######## end of equirectangular projection (BACKWARD MAPPING) (NOT CORRECT)#############
+
+
+#***********************************************************************************************************#
+
+######## equirectangular projection (BACKWARD MAPPING) (NOT SURE) #############
+
+radius = 405
+center = 512
+alpha = 360/27
+#alpha = 0
+dest = np.zeros((181,361))
+
+for i in range(-90,91):
+#for i in range(0,1):
+    s_i = int(round(center - ((math.sin(math.radians(i)))*radius)))
+    for j in range(-180,181):
+    #for j in range(0,1):
+        r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - s_i)))))
+        #s_j = int(round(min(center+r, max(0,center + ((math.sin(math.radians(j)))*radius)))))
+        s_j = int(round(center + ((math.sin(math.radians(j)))*r)))
+        #print (s_i, s_j)
+        #s_j_nxt = int(round(min(center+r, max(0, int(round(np.abs(s_j-radius*math.sin(math.radians(alpha)))))))))
+        s_j_nxt = int(round(np.abs(s_j-r*math.sin(math.radians(alpha)))))
+        #print (s_i, s_j, s_j_nxt)
+        dest[i+90][j+90] = img[s_i][s_j_nxt]
+        #dest[i+90][j+90] = img[s_i][s_j]
+        
+
+plt.imshow(dest, cmap='gray')
+plt.imshow(img, cmap='gray')
+
+######## end of equirectangular projection (BACKWARD MAPPING) (NOT SURE) #############
+
+
+
+############### checking ##############################
+
+radius = 405
+center = 512
+#alpha = 360/27
+alpha = 0
+dest = np.zeros((91, 1))
+
+s_i = np.zeros(181).astype(int)
+s_j = np.zeros(181).astype(int)
+
+
+for i in range(-90, 91): #lat
+#for i in range(0,1):
+    s_i[i] = int(round(center - ((math.sin(math.radians(i)))*radius)))
+    r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - s_i[i])))))
+    for j in range(-90,-89): #lon
+    #for j in range(0,1):
+        s_j[i] = int(round(center + ((math.sin(math.radians(j)))*r)))
+        #img1[i][j] =img[s_i][s_j] 
+        
+plt.imshow(img, cmap='gray')
+plt.scatter([s_j], [s_i], c = 'r')
+plt.show()
+
+############### checking ##############################
+
+
+####### TRIAL ###########
+
+#
+#p = [-3, -2, -1, 0, 1, 2, 3]
+#q = [9, 4, 1, 0, 1, 4, 9]
+#plt.plot(p,q)
+#
+#
+#
+#
+#p = []
+#q = 1
+#p.append(q)
+
+######### Trial ##########
+
+#******************************************#
+
+#dest = np.zeros((181, 361))
+#for lat in range(-90, 91):
+#    for lon in range(-180, 181):
+#        s_i = int(round(math.cos(math.radians(lat)) * math.sin(math.radians(lon/2))))
+#        s_j = int(round(math.sin(math.radians(lat))))
+#        dest[i+90][j+180] = img[s_i][s_j]
+#plt.imshow(dest, cmap='gray')        
+
+#******************************************#
+
+
+############## CHECKING (TRIAL) #########################
+
+#radius = 400
+#center = 500
+#alpha = 360/36.5
+#alpha = 0
+#dest = np.zeros((181, 181))
+#img1 = np.zeros((91,91))
+#
+#
+#
+#for i in range(0, 90): #lat
+##for i in range(0,1):
+#    s_i = int(round(center + ((math.sin(math.radians(i)))*radius)))
+#    for j in range(-90,-89): #lon
+#    #for j in range(0,1):
+#        r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - s_i)))))
+#        s_j = int(round(center + ((math.sin(math.radians(j)))*r)))
+#        #print (s_i, s_j)
+#        plt.imshow(img, cmap='gray')
+#        plt.scatter([s_i], [s_j], c = 'r')
+#        plt.show()
+#        
+#        
+#        print (s_i, s_j)
+#        img[s_i][s_j]
+#        s_j_nxt = int(round(np.abs(s_j-r*math.sin(math.radians(alpha)))))
+#        #print (s_i, s_j, s_j_nxt)
+#        
+#        dest[i+90][j+90] = img[s_i][s_j_nxt]
+#        #dest[i+90][j+90] = img[s_i][s_j]
+#plt.imshow(dest, cmap='gray')
+#plt.imshow(img, cmap='gray')
+#
+##
+##im = plt.imread("/Users/sumi/python/research/df.png")
+##implot = plt.imshow(im)
+#
+## put a blue dot at (10, 20)
+#plt.scatter([10], [20])
+#a_i = a_j = 10
+#plt.scatter([a_i], [a_j])
+## put a red dot, size 40, at 2 locations:
+#plt.scatter(x=[30, 40], y=[50, 60], c='r', s=40)
+#
+#plt.show()
+
+############## END OF CHECKING (TRIAL) #########################
+
+
+
 
 
 
