@@ -6,6 +6,8 @@ Created on Tue Jun  5 00:32:39 2018
 @author: sumi
 """
 
+import os
+import glob
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
@@ -29,11 +31,11 @@ import math
 
 
 #this method will take start date, end date and url, return url with date
-date1 = '2012-09-15 23:00:00'
-date2 = '2012-09-17 01:00:00'
+date1 = '2012-01-01 00:00:00'
+date2 = '2012-01-02 23:59:00'
 url = "https://sdo.gsfc.nasa.gov/assets/img/browse/"
 wavelength = '0193'
-resolution = '1024'
+resolution = '512'
 #timespan = 20
 
 #angle = 15
@@ -77,14 +79,18 @@ for i in range(len(url_dates)):
         #print(time_datetime)
         if (time_datetime == start_date.time()):
             img_files_time.append(img_files[m])
-            start_date += datetime.timedelta(minutes = 5)
+            start_date += datetime.timedelta(hours = 1)
+            for sec in range(-59, 60):
+                start_date_range = start_date + datetime.timedelta(seconds = sec)
         elif (time_datetime > start_date.time()):
-            start_date += datetime.timedelta(minutes = 5) 
+            start_date += datetime.timedelta(hours = 1)
+            for sec in range(-59, 60):
+                start_date_range = start_date + datetime.timedelta(seconds = sec)
     
     img_files_wr = []        # image files with all info like wavelength, resolution   
     for k in range(len(img_files_time)):
         splitting = re.split(r'[_.?=;/]+',img_files_time[k])
-        if (splitting[2] == resolution):
+        if (splitting[3] == wavelength):
             img_files_wr.append(img_files_time[k])
             
                        
@@ -131,7 +137,86 @@ for i in range(len(urls_dates_images)):
 img_arr = np.dstack(img_all)    # retuns 3d array (1024, 1024, 6(# images))
 img_arr = img_arr.reshape(img_arr.shape[2], -1) # reshaping
 
-targets = np.ones(6,)
+
+######## to read .txt files   ################# 
+
+path = '/Users/sumi/python/research/'
+
+for filename in glob.glob(os.path.join(path, 'goes5min_1_*.txt')):
+    data1 = np.loadtxt(filename)
+    #data1 =  np.loadtxt('/Users/sumi/python/research/goes5min_2017_12_31.txt')
+    time_data1 = data1[:,3]
+    short_data1 = data1[:,6]
+    
+    hour = 0
+    flux = np.zeros(24)
+    tot_short = short_data1[0]
+            
+    for i in range(1,data1.shape[0]):
+    #for i in range(1, 13):
+        
+        if time_data1[i]%100 != 0:
+            tot_short = tot_short + short_data1[i]
+            #print("if",i, tot_short, short_data1[i])
+        else:
+            flux[hour] = tot_short/12
+            hour += 1
+            tot_short = short_data1[i]
+            #print("else",i, tot_short, hour, flux[hour])
+    flux[23] = tot_short/12
+    #print(tot_short)
+    
+    os.chdir(path)
+    file_name = str(data1[0][0].astype(int)) + '_' +  str(data1[0][1].astype(int)) + '_' + str(data1[0][2].astype(int))
+    np.savetxt(file_name+'.txt', flux)
+
+        
+        
+        #************************************#
+
+
+
+
+
+
+
+
+
+
+
+        
+######## read .txt files from url   ################# 
+url_txt = 'http://darts.isas.ac.jp/pub/solar/sswdb/goes/xray/'
+page_txt = requests.get(url_txt)    
+data_txt = page_txt.text
+soup_txt = BeautifulSoup(data_txt)
+
+# get the txt file name
+txt_files=[]    # image files with all info like wavelength, resolution, time
+for link in soup_txt.find_all('a'):
+    txt_file = link.get('href')
+    txt_files.append(txt_file)
+
+# add the txt file with the url
+url_txt_all = []
+for j in range(5,len(txt_files)): #range(size)
+    url_ = url_txt + txt_files[j]
+    url_txt_all.append(url_)  
+    
+# read url_txt_all
+read_pages = []
+for url in url_txt_all:
+    read_pages.append(urllib.request.urlopen(url).read())
+
+# extract info from read_pages
+
+    
+
+    
+######## (end of )read .txt files from url   ################# 
+
+
+
 
 
 
@@ -148,6 +233,20 @@ plt.imshow(img_all[0],cmap='gray')
 img = img_all[0]
 
 
+img_url = 'https://sdo.gsfc.nasa.gov/assets/img/browse/2012/09/15/20120915_152719_1024_0193.jpg'
+response = requests.get(img_url)
+img = Image.open(BytesIO(response.content))
+img = np.array(img) # img.shape: height x width x channel
+img = img/255        # scaling from [0,1]
+img = np.mean(img,axis=2) #take the mean of the R, G and B  
+img_all.append(img)
+
+
+
+
+
+
+
 
 
 #dest = np.zeros((180,360),dtype=np.float32)
@@ -155,7 +254,7 @@ img = img_all[0]
 
 radius = 400
 center = 500
-alpha = 3600/36.5
+alpha = 360/27
 #alpha=0
 #alpha = 10
 
@@ -262,13 +361,13 @@ for i in range(-90,91):
 #for i in range(0,1):
     s_i = int(round(center + ((math.sin(math.radians(i)))*radius)))
     r = int(round(np.sqrt(np.abs(np.square(radius) - np.square(center - s_i)))))
-    for j in range(-180, 181):
-    #for j in range(-90, 91):
+    #for j in range(-180, 181):
+    for j in range(-90, 91):
     #for j in range(-90,-89):
         s_j = int(round(center + ((math.sin(math.radians(j)))*r)))
         #print (i, j, r, s_i, s_j)
-        s_j_nxt = int(round(min(center+r, max(0, int(round(np.abs(s_j-radius*math.sin(math.radians(alpha)))))))))
-        #s_j_nxt = int(round(np.abs(s_j-r*math.sin(math.radians(alpha)))))
+        #s_j_nxt = int(round(min(center+r, max(0, int(round(np.abs(s_j-radius*math.sin(math.radians(alpha)))))))))
+        s_j_nxt = int(round(np.abs(s_j-r*math.sin(math.radians(alpha)))))
         #print (s_i, s_j, s_j_nxt)
         #dest[i][j] = img[s_i][s_j_nxt]
         dest[i+90][j+180] = img[s_i][s_j_nxt]
