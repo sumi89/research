@@ -33,7 +33,7 @@ import math
 
 #this method will take start date, end date and url, return url with date
 date1 = '2017-01-01 00:00:00'
-date2 = '2017-01-03 23:59:00'
+date2 = '2017-12-31 23:59:00'
 url = "https://sdo.gsfc.nasa.gov/assets/img/browse/"
 wavelength = '0193'
 resolution = '512'
@@ -88,7 +88,7 @@ while start_date <= end_date:
         #print('time',time_datetime)
         
         start_date_hr = start_date + datetime.timedelta(hours = 1)    
-        print('start_date_hr',start_date_hr.time())
+        #print('start_date_hr',start_date_hr.time())
         while (start_date_hr.time() <= end_date.time()):  
             for sec in range(-366,367):
                 start_date_range = start_date_hr + datetime.timedelta(seconds = sec)
@@ -121,4 +121,70 @@ while start_date <= end_date:
 
 # converting a list of list to a list
 #urls_dates_images = list(chain.from_iterable(urls_dates_images))  
-urls_dates_images = list(chain.from_iterable(url_dates))       
+urls_dates_images = list(chain.from_iterable(url_dates))      
+
+
+# this method will take the url with date and image name, return the corresponding images 
+img_all=[]
+for i in range(len(urls_dates_images)):
+#for i in range(5):
+    response = requests.get(urls_dates_images[i])
+    img = Image.open(BytesIO(response.content))
+    img.save('/Users/sumi/python/research/solar_images_2017/'+str(i)+'.jpg')
+    img = np.array(img) # img.shape: height x width x channel
+    img = img/255        # scaling from [0,1]
+    img = np.mean(img,axis=2) #take the mean of the R, G and B  
+    img_all.append(img) 
+
+
+######## to read .txt files   ################# 
+
+path = '/Users/sumi/python/research/flux_2017/'
+
+for filename in glob.glob(os.path.join(path, 'goes5min_2017_*.txt')):
+    data1 = np.loadtxt(filename)
+    #data1 =  np.loadtxt('/Users/sumi/python/research/goes5min_2017_12_31.txt')
+    time_data1 = data1[:,3]
+    short_data1 = data1[:,6]
+    
+    hour = 0
+    flux = np.zeros(24)
+    tot_short = short_data1[0]
+            
+    for i in range(1,data1.shape[0]):
+    #for i in range(1, 13):
+        
+        if time_data1[i]%100 != 0:
+            tot_short = tot_short + short_data1[i]
+            #print("if",i, tot_short, short_data1[i])
+        else:
+            flux[hour] = tot_short/12
+            hour += 1
+            tot_short = short_data1[i]
+            #print("else",i, tot_short, hour, flux[hour])
+    flux[23] = tot_short/12
+    #print(tot_short)
+    
+    os.chdir(path)
+    file_name = str(data1[0][0].astype(int)) + '_' +  str(data1[0][1].astype(int)) + '_' + str(data1[0][2].astype(int))
+    np.savetxt(file_name+'.txt', flux)
+
+        
+        
+        #************************************#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
