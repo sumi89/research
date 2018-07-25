@@ -1,3 +1,4 @@
+,
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -101,9 +102,6 @@ while start_date <= end_date:
 #        
 #        required_urls.append(img_files_wr[index_hrs_url])        
         
-         
-        
-    
     start_hr = 0
     index_hrs_url = 0
     for hours in range(0, 24):
@@ -130,9 +128,6 @@ while start_date <= end_date:
         
     start_date += step   
 
-     
-          
-                       
 
 # this method will take the url with date and image name, return the corresponding images 
 #img_all=[]
@@ -145,6 +140,203 @@ for i in range(8759,8760):
 #    img = img/255        # scaling from [0,1]
 #    img = np.mean(img,axis=2) #take the mean of the R, G and B  
 #    img_all.append(img) 
+
+
+
+    
+############ to change the missing value of the flux #######################   
+path = '/Users/sumi/python/research/changed_flux_2017/'    
+for filename in glob.glob(os.path.join(path, 'goes5min_2017*.txt')):
+    #filename = '/Users/sumi/python/research/flux_2017/goes5min_2017_6_23.txt'
+    data1 = np.loadtxt(filename)
+    #data1 =  np.loadtxt('/Users/sumi/python/research/goes5min_2017_12_31.txt')
+    #time_data1 = data1[:,3]
+    short_data1 = data1[:,6]
+    short_data2 = data1[:,7]
+    short_data3 = data1[:,8]
+    
+    #hour = 0
+    #flux = np.zeros(24)
+    
+    if short_data1[0] == -1.00e+05 :
+        short_data1[0] = short_data1[1]
+    if short_data2[0] == -1.00e+05 :
+        short_data2[0] = short_data2[1]
+    if short_data3[0] == -1.00e+05 :
+        short_data3[0] = short_data3[1]
+    for i in range(1, data1.shape[0]):    
+        if short_data1[i] == -1.00e+05:
+            short_data1[i] = short_data1[i-1]
+        if short_data2[i] == -1.00e+05:
+            short_data2[i] = short_data2[i-1]
+        if short_data3[i] == -1.00e+05:
+            short_data3[i] = short_data3[i-1]
+    #data1[:,6] = short_data1
+    #os.chdir(path)
+            
+    month = str(data1[0][1].astype(int))
+    if len(month) < 2:
+        month = str(0) + str(data1[0][1].astype(int))
+    day = str(data1[0][2].astype(int))
+    if len(day) < 2:
+        day = str(0) + str(data1[0][2].astype(int))
+    file_nm = '_' + month + '_' + day
+    np.savetxt(path + 'new_goes5min_2017' + file_nm + '.txt', data1.reshape((288,9)), fmt='%i \t%i \t%i \t%i \t%i \t%i \t%.2e \t%.2e \t%.2e')
+############ to change the missing value of the flux ####################### 
+
+
+#*************** generating required flux     *********************#
+
+path = '/Users/sumi/python/research/changed_flux_2017/'
+
+for filename in glob.glob(os.path.join(path, 'new_goes5min_2017*.txt')):
+    data1 = np.loadtxt(filename)
+    #data1 =  np.loadtxt('/Users/sumi/python/research/goes5min_2017_12_31.txt')
+    time_data1 = data1[:,3]
+    short_data1 = data1[:,6]
+    
+    hour = 0
+    flux = np.zeros(24)
+    
+    if short_data1[0] == -1.00e+05 :
+        short_data1[0] = 0
+    tot_short = short_data1[0]
+            
+    for i in range(1,data1.shape[0]):
+    #for i in range(1, 13):
+        if short_data1[i] == -1.00e+05:
+            short_data1[i] = 0
+        if time_data1[i]%100 != 0:
+            if short_data1[i] == -1.00e+05 :
+                short_data1[i] = 0
+            tot_short = tot_short + short_data1[i]
+            #print("if",i, tot_short, short_data1[i])
+        else:
+            flux[hour] = tot_short/12
+            hour += 1
+            tot_short = short_data1[i]
+            #print("else",i, tot_short, hour, flux[hour])
+    flux[23] = tot_short/12
+    #print(tot_short)
+    
+    
+    os.chdir(path)
+    year = str(data1[0][0].astype(int))
+    month = str(data1[0][1].astype(int))
+    if len(month) < 2:
+        month = str(0) + str(data1[0][1].astype(int))
+    day = str(data1[0][2].astype(int))
+    if len(day) < 2:
+        day = str(0) + str(data1[0][2].astype(int))
+    
+    file_name = year + '_' + month + '_' + day
+    np.savetxt(file_name+'.txt', flux)
+
+#with open('/Users/sumi/python/research/flux_2017/test.txt', 'w') as outfile:
+#    for slice_2d in data1:
+#        np.savetxt(outfile, slice_2d)
+
+ #*************** generating required flux  (end)   *********************#
+        
+        
+
+''''############# exactly what i need ###################''''
+import glob
+
+read_files = glob.glob("/Users/sumi/python/research/flux_2017/2017_*.txt")
+
+with open("flux_2017.txt", "wb") as outfile:
+    for f in read_files:
+        with open(f, "rb") as infile:
+            outfile.write(infile.read())   
+''''############# exactly what i need ###################  ''''  
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''' another way of reading files from a folder''''
+for file in os.listdir(files_dir):
+    print(os.path.join(files_dir, file))
+'''' another way of reading files from a folder''''
+
+
+
+############# not what i need ###################
+#filenames = ['/Users/sumi/python/research/2012_1_1.txt', '/Users/sumi/python/research/2012_1_1.txt']
+#with open('result.txt', 'w') as outfile:
+#    for fname in filenames:
+#        with open(fname) as infile:
+#            content = infile.read().replace('\n', '')
+#            outfile.write(content)s
+#    
+#columns = []
+#for filename in filenames:
+#    f=open(filename)
+#    x = np.array([float(raw) for raw in f.readlines()])
+#    columns.append(x)
+#columns = np.vstack(columns).T
+#np.savetxt('filename_out.txt', columns)
+
+
+############# not what i need ###################
+
+        
+####################### trial ##############################################
+path = '/Users/sumi/python/research/flux_2017/'
+
+for filename in glob.glob(os.path.join(path, 'goes5min_2017_6_23.txt')):
+    data1 = np.loadtxt(filename)
+    #data1 =  np.loadtxt('/Users/sumi/python/research/goes5min_2017_12_31.txt')
+    time_data1 = data1[:,3]
+    short_data1 = data1[:,6]
+    
+    hour = 0
+    flux = np.zeros(24)
+    
+    if short_data1[0] == -1.00e+05 :
+        short_data1[0] = 0
+    tot_short = short_data1[0]
+            
+    for i in range(1,data1.shape[0]):
+    #for i in range(1, 13):
+        if short_data1[i] == -1.00e+05:
+            short_data1[i] = 0
+        if time_data1[i]%100 != 0:
+            if short_data1[i] == -1.00e+05 :
+                short_data1[i] = 0
+            tot_short = tot_short + short_data1[i]
+            #print("if",i, tot_short, short_data1[i])
+        else:
+            flux[hour] = tot_short/12
+            hour += 1
+            tot_short = short_data1[i]
+            #print("else",i, tot_short, hour, flux[hour])
+    flux[23] = tot_short/12
+    #print(tot_short)
+    
+    
+    os.chdir(path)
+    year = str(data1[0][0].astype(int))
+    month = str(data1[0][1].astype(int))
+    if len(month) < 2:
+        month = str(0) + str(data1[0][1].astype(int))
+    day = str(data1[0][2].astype(int))
+    if len(day) < 2:
+        day = str(0) + str(data1[0][2].astype(int))
+    
+    file_name = year + '_' + month + '_' + day
+    np.savetxt(file_name+'.txt', flux)
+####################### trial (end) ##############################################        
+
 
 
 ######## to read .txt files   ################# 
@@ -180,6 +372,7 @@ for filename in glob.glob(os.path.join(path, 'goes5min_2017_*.txt')):
     os.chdir(path)
     file_name = str(data1[0][0].astype(int)) + '_' +  str(data1[0][1].astype(int)) + '_' + str(data1[0][2].astype(int))
     np.savetxt(file_name+'.txt', flux)
+
 ##################### TRIAL ##################
 filename = '/Users/sumi/python/research/flux_trial/goes5min_1_19.txt'
 
@@ -216,101 +409,7 @@ os.chdir(path)
 file_name = str(data1[0][0].astype(int)) + '_' +  str(data1[0][1].astype(int)) + '_' + str(data1[0][2].astype(int))
 np.savetxt(file_name+'.txt', flux)
 
-
-
-##################### TRIAL ##################
-
-
-
-        
-        
-        #************************************#
-
-path = '/Users/sumi/python/research/flux_2017/'
-
-for filename in glob.glob(os.path.join(path, 'goes5min_2017*.txt')):
-    data1 = np.loadtxt(filename)
-    #data1 =  np.loadtxt('/Users/sumi/python/research/goes5min_2017_12_31.txt')
-    time_data1 = data1[:,3]
-    short_data1 = data1[:,6]
-    
-    hour = 0
-    flux = np.zeros(24)
-    tot_short = short_data1[0]
-            
-    for i in range(1,data1.shape[0]):
-    #for i in range(1, 13):
-        if short_data1[i] == -1.00e+05:
-            short_data1[i] = 0
-        if time_data1[i]%100 != 0:
-            if short_data1[i] == -1.00e+05 :
-                short_data1[i] = 0
-            tot_short = tot_short + short_data1[i]
-            #print("if",i, tot_short, short_data1[i])
-        else:
-            flux[hour] = tot_short/12
-            hour += 1
-            tot_short = short_data1[i]
-            #print("else",i, tot_short, hour, flux[hour])
-    flux[23] = tot_short/12
-    #print(tot_short)
-    
-    
-    os.chdir(path)
-    year = str(data1[0][0].astype(int))
-    month = str(data1[0][1].astype(int))
-    if len(month) < 2:
-        month = str(0) + str(data1[0][1].astype(int))
-    day = str(data1[0][2].astype(int))
-    if len(day) < 2:
-        day = str(0) + str(data1[0][2].astype(int))
-    
-    file_name = year + '_' + month + '_' + day
-    np.savetxt(file_name+'.txt', flux)
-
-
-
-''''############# exactly what i need ###################''''
-import glob
-
-read_files = glob.glob("/Users/sumi/python/research/flux_2017/2017_*.txt")
-
-with open("flux_2017.txt", "wb") as outfile:
-    for f in read_files:
-        with open(f, "rb") as infile:
-            outfile.write(infile.read())   
-''''############# exactly what i need ###################  ''''  
-
-'''' another way of reading files from a folder''''
-for file in os.listdir(files_dir):
-    print(os.path.join(files_dir, file))
-'''' another way of reading files from a folder''''
-
-
-
-############# not what i need ###################
-#filenames = ['/Users/sumi/python/research/2012_1_1.txt', '/Users/sumi/python/research/2012_1_1.txt']
-#with open('result.txt', 'w') as outfile:
-#    for fname in filenames:
-#        with open(fname) as infile:
-#            content = infile.read().replace('\n', '')
-#            outfile.write(content)s
-#    
-#columns = []
-#for filename in filenames:
-#    f=open(filename)
-#    x = np.array([float(raw) for raw in f.readlines()])
-#    columns.append(x)
-#columns = np.vstack(columns).T
-#np.savetxt('filename_out.txt', columns)
-
-
-############# not what i need ###################
-
-
-
-
-
+##################### TRIAL (END) ##################
 
 
 
